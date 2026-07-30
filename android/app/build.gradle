@@ -84,6 +84,12 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        externalNativeBuild {
+        cmake {
+            // Forces CMake to trim output filenames so Ninja doesn't breach 260 chars
+            arguments "-DCMAKE_OBJECT_PATH_MAX=260"
+        }
+    }
     }
     signingConfigs {
         debug {

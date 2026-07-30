@@ -1,4 +1,7 @@
 {
   "name": "DiskDuelMobile",
-  "displayName": "DiskDuelMobile"
+  "displayName": "DiskDuelMobile",
+  "plugins": [
+    "expo-audio"
+  ]
 }
