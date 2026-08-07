@@ -14,13 +14,6 @@ import { Hub } from "./disk/hub";
 import { GlassySector } from "./disk/glassy-sector";
 import { getSectorStyle } from "../lib/utils"; // once ported, or keep as pure JS/TS — no ctx needed, doesn't require conversion
 
-// TODO: convert these next, same pattern as BasePlatform
-// import { OuterRing } from "./OuterRing";
-// import { GlassySector } from "./GlassySector";
-// import { SectorLabel } from "./SectorLabel";
-// import { Hub } from "./Hub";
-// import { getSectorStyle } from "../lib/utils";
-
 import { CANVAS_SIZE } from "../lib/constants";
 import { GameBoardProps } from "../lib/types";
 

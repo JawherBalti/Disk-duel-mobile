@@ -60,7 +60,7 @@ export default function SettingsModal({
         onPress={() => setIsOptionsOpen(false)}
       >
         <Pressable
-          className="w-full max-w-md rounded-[28px] border-4 border-yellow-400 bg-[#13254B] px-6 py-7"
+          className="w-full rounded-[28px] border-4 border-yellow-400 bg-[#13254B] px-6 py-7"
           onPress={(e) => e.stopPropagation()}
         >
           {/* Title */}

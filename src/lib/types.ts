@@ -1,8 +1,12 @@
 import { ParamValue } from "next/dist/server/request/params";
 import { CSSProperties, Dispatch, SetStateAction } from "react";
 
+export type RootStackParamList = {
+  Play: { gameCode: string };
+};
+
 export type CardType = "double" | "extraLife" | "fastTimer" | null;
-export type SectorType = "danger" | "safe" | "bullseye";
+export type SectorType = "" | "danger" | "safe" | "bullseye";
 export type AnimationState =
   | "welcome1"
   | "welcome2"

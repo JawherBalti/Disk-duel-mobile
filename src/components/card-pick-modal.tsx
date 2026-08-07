@@ -1,51 +1,93 @@
-"use client";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  Pressable,
+  Modal,
+  Animated,
+  Dimensions,
+  Easing,
+} from "react-native";
+import LinearGradient from "react-native-linear-gradient";
 
-import { CardPickModalProps } from "@/lib/types";
-import { useState, useEffect } from "react";
+// (Icon imports – uncomment when you have them)
+// import HighStakesIcon from "../assets/icons/high-stakes.svg";
+// import ExtraLifeIcon from "../assets/icons/extra-life.svg";
+// import QuickeningIcon from "../assets/icons/quickening.svg";
+// import HiddenIcon from "../assets/icons/hidden.svg";
 
+const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
+
+interface CardPickModalProps {
+  role: "player1" | "player2" | null;
+  cardPicked: boolean;
+  revealedCardIndex: number | null;
+  revealedCardType: "double" | "extraLife" | "fastTimer" | null;
+  onPickCard: (index: number) => void;
+}
 
 const CARD_INFO: Record<
   string,
-  { label: string; emoji: string; desc: string }
+  { label: string; icon: React.FC<any>; desc: string }
 > = {
   double: {
     label: "High Stakes",
-    emoji: "/assets/high-stakes.svg",
+    icon: "", // Replace with HighStakesIcon
     desc: "Double effect: -2 lives if wrong, -2 dealer lives if right",
   },
   extraLife: {
     label: "Extra Life",
-    emoji: "/assets/extra-life.svg",
+    icon: "", // Replace with ExtraLifeIcon
     desc: "+1 life for the team, immediately",
   },
   fastTimer: {
     label: "Quickening",
-    emoji: "/assets/quickening.svg",
+    icon: "", // Replace with QuickeningIcon
     desc: "Timer runs faster this round",
   },
 };
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const CARD_WIDTH = SCREEN_WIDTH * 0.22;
+const CARD_HEIGHT = CARD_WIDTH * 1.4;
 
 export default function CardPickModal({
   role,
   cardPicked,
   revealedCardIndex,
-  revealedCardType="fastTimer",
+  revealedCardType = "fastTimer",
   onPickCard,
 }: CardPickModalProps) {
   const [flipping, setFlipping] = useState<number | null>(null);
-  // NEW: locally selected (not yet confirmed) card index
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
+  const flipAnims = useRef([
+    new Animated.Value(1),
+    new Animated.Value(1),
+    new Animated.Value(1),
+  ]).current;
+
+  // When a card is revealed, trigger the spin+zoom animation
   useEffect(() => {
     if (revealedCardIndex !== null) {
       setFlipping(revealedCardIndex);
+      const anim = flipAnims[revealedCardIndex];
+      anim.setValue(0);
+      Animated.timing(anim, {
+        toValue: 1,
+        duration: 2000,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      }).start();
     }
   }, [revealedCardIndex]);
 
-  // NEW: reset local selection whenever the modal resets for a new round
+  // Reset everything when modal closes
   useEffect(() => {
     if (!cardPicked) {
       setSelectedIndex(null);
+      flipAnims.forEach((anim) => anim.setValue(1));
+      setFlipping(null);
     }
   }, [cardPicked]);
 
@@ -61,86 +103,143 @@ export default function CardPickModal({
     onPickCard(selectedIndex);
   };
 
+  const renderCard = (idx: number) => {
+    const isRevealed = revealedCardIndex === idx;
+    const isSelected = !cardPicked && selectedIndex === idx;
+    const info =
+      isRevealed && revealedCardType ? CARD_INFO[revealedCardType] : null;
+    const flipValue = flipAnims[idx];
+
+    // Interpolations – applied only when revealed
+    const scale = isRevealed
+      ? flipValue.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.3, 1],
+        })
+      : 1;
+    const rotateY = isRevealed
+      ? flipValue.interpolate({
+          inputRange: [0, 1],
+          outputRange: ["-360deg", "0deg"],
+        })
+      : "0deg";
+    const opacity = isRevealed
+      ? flipValue.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 1],
+        })
+      : 1;
+
+    // Gradient colors based on state
+    let gradientColors: string[];
+    if (isRevealed) {
+      gradientColors = ["#7e22ce", "#4338ca"]; // purple-700 to indigo-800
+    } else if (isSelected) {
+      gradientColors = ["#1e40af", "#6b21a8"]; // blue-800 to purple-800
+    } else {
+      gradientColors = ["#1e3a8a", "#4c1d95"]; // blue-900 to purple-900
+    }
+
+    // Border color
+    let borderColor = "rgba(255,255,255,0.3)";
+    if (isRevealed) borderColor = "#facc15"; // yellow-400
+    else if (isSelected) borderColor = "#4ade80"; // green-400
+
+    return (
+      <AnimatedLinearGradient
+        key={idx}
+        colors={gradientColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          width: CARD_WIDTH,
+          height: CARD_HEIGHT,
+          borderRadius: 12,
+          borderWidth: 2,
+          borderColor: borderColor,
+          transform: [{ scale }, { rotateY }],
+          opacity: opacity,
+          // Shadow for selected state (optional)
+          ...(isSelected && {
+            shadowColor: "#4ade80",
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0.4,
+            shadowRadius: 12,
+            elevation: 6,
+          }),
+        }}
+      >
+        <Pressable
+          disabled={!canPick}
+          onPress={() => handleCardClick(idx)}
+          activeOpacity={0.7}
+          className="items-center justify-center w-full h-full"
+        >
+          {/* Card content: hidden icon or revealed info */}
+          {isRevealed && info ? (
+            <View className="items-center justify-center">
+              {/* <info.icon width={60} height={60} /> */}
+              <Text className="text-white text-[10px] sm:text-xs font-bold uppercase mt-1">
+                {info.label}
+              </Text>
+            </View>
+          ) : (
+            <View className="items-center justify-center">
+              {/* <HiddenIcon width={60} height={60} /> */}
+              <Text className="text-white/30 text-4xl font-bold">?</Text>
+            </View>
+          )}
+
+          {isSelected && (
+            <View className="absolute -top-2 -right-2 bg-green-500 rounded-full w-6 h-6 items-center justify-center border-2 border-white">
+              <Text className="text-white text-xs font-bold">✓</Text>
+            </View>
+          )}
+        </Pressable>
+      </AnimatedLinearGradient>
+    );
+  };
+
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="card-modal-content text-center space-y-10">
-        <h2 className="text-2xl sm:text-3xl font-bold text-white">
-          {role === "player1"
-            ? cardPicked
-              ? "Effect revealed!"
-              : "Choose an effect"
-            : "Player 1 is choosing an effect..."}
-        </h2>
+    <Modal transparent animationType="fade" visible>
+      <View className="flex-1 items-center justify-center bg-black/60 p-4">
+        <View className="items-center gap-10 w-full rounded-[28px] border-4 border-yellow-400 px-6 py-7 bg-[rgba(15,15,40,0.92)]">
+          <Text className="text-2xl sm:text-3xl font-bold text-white text-center">
+            {role === "player1"
+              ? cardPicked
+                ? "Effect revealed!"
+                : "Choose an effect"
+              : "Player 1 is choosing an effect..."}
+          </Text>
 
-        <div className="flex justify-center gap-4 sm:gap-6">
-          {[0, 1, 2].map((idx) => {
-            const isRevealed = revealedCardIndex === idx;
-            const isSelected = !cardPicked && selectedIndex === idx;
-            const info =
-              isRevealed && revealedCardType
-                ? CARD_INFO[revealedCardType]
-                : null;
+          <View className="flex-row justify-center gap-4 sm:gap-6">
+            {[0, 1, 2].map((idx) => renderCard(idx))}
+          </View>
 
-            return (
-              <button
-                key={idx}
-                disabled={!canPick}
-                onClick={() => handleCardClick(idx)}
-                className={`relative w-20 h-28 sm:w-28 sm:h-40 rounded-xl border-2 transition-all duration-300 flex items-center justify-center
-                  ${
-                    isRevealed
-                      ? "border-yellow-400 bg-linear-to-br from-purple-700 to-indigo-800 scale-105"
-                      : isSelected
-                        ? "border-green-400 bg-linear-to-br from-blue-800 to-purple-800 scale-110 shadow-lg shadow-green-400/30"
-                        : "border-white/30 bg-linear-to-br from-blue-900 to-purple-900"
-                  }
-                  ${canPick ? "hover:scale-110 hover:border-yellow-300 cursor-pointer" : "cursor-default"}
-                  ${flipping === idx ? "animate-cardFlip" : ""}
-                `}
-              >
-                {isRevealed && info ? (
-                  <div className="flex flex-col items-center gap-1 px-1">
-                    <img className="text-3xl sm:text-4xl" src={info.emoji}/>
-                    <span className="text-white text-[10px] sm:text-xs font-bold uppercase">
-                      {info.label}
-                    </span>
-                  </div>
-                ) : (
-                  <img className="text-3xl sm:text-4xl" src="/assets/hidden.svg"/>
-                )}
-
-                {isSelected && (
-                  <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center border-2 border-white">
-                    ✓
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* NEW: confirm button, only for player1 while a card is selected but not yet confirmed */}
-        {canPick && selectedIndex !== null && (
-          <div className="flex justify-center gap-3">
-            <button
-              onClick={handleConfirm}
-              className="hover:cursor-pointer bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-black text-xl py-3 px-10 rounded-full shadow-xl transition duration-200 hover:scale-105 active:scale-95"
+          {canPick && selectedIndex !== null && (
+            <Pressable
+              className="bg-yellow-400 hover:bg-yellow-300 py-3 px-10 rounded-full shadow-xl active:scale-105"
+              onPress={handleConfirm}
             >
-              Confirm
-            </button>
-          </div>
-        )}
+              <Text className="text-gray-900 font-black text-xl">Confirm</Text>
+            </Pressable>
+          )}
 
-        {revealedCardIndex !== null && revealedCardType && (
-          <div className="bg-yellow-400/10 border border-yellow-400/40 rounded-xl p-3 text-yellow-200 text-sm font-semibold">
-            {CARD_INFO[revealedCardType].desc}
-          </div>
-        )}
+          {revealedCardIndex !== null && revealedCardType && (
+            <View className="bg-yellow-400/10 border border-yellow-400/40 rounded-xl p-3">
+              <Text className="text-yellow-200 text-sm font-semibold text-center">
+                {CARD_INFO[revealedCardType].desc}
+              </Text>
+            </View>
+          )}
 
-        {!cardPicked && role === "player2" && (
-          <p className="text-white/60 text-sm">Waiting for Player 1...</p>
-        )}
-      </div>
-    </div>
+          {!cardPicked && role === "player2" && (
+            <Text className="text-white/60 text-sm">
+              Waiting for Player 1...
+            </Text>
+          )}
+        </View>
+      </View>
+    </Modal>
   );
 }
