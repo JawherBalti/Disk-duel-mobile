@@ -2,6 +2,7 @@
 
 import { AnimationConfig, AnimationState } from "./types";
 
+// 1. Centralized config: include cols & rows per animation state
 export const animations: Record<AnimationState, AnimationConfig> = {
   welcome1: {
     src: require("../assets/character/welcome1.webp"),
@@ -10,6 +11,8 @@ export const animations: Record<AnimationState, AnimationConfig> = {
     loop: false,
     width: 640,
     height: 432,
+    cols: 6,
+    rows: 6,
   },
   welcome2: {
     src: require("../assets/character/welcome2.webp"),
@@ -18,6 +21,8 @@ export const animations: Record<AnimationState, AnimationConfig> = {
     loop: false,
     width: 640,
     height: 432,
+    cols: 6,
+    rows: 7,
   },
   welcome3: {
     src: require("../assets/character/welcome3.webp"),
@@ -26,8 +31,9 @@ export const animations: Record<AnimationState, AnimationConfig> = {
     loop: false,
     width: 640,
     height: 432,
+    cols: 6,
+    rows: 11,
   },
-
   laughing: {
     src: require("../assets/character/laughing.webp"),
     frames: 53,
@@ -35,8 +41,9 @@ export const animations: Record<AnimationState, AnimationConfig> = {
     loop: false,
     width: 608,
     height: 410,
+    cols: 8,
+    rows: 7,
   },
-
   hit: {
     src: require("../assets/character/hit.webp"),
     frames: 35,
@@ -44,8 +51,9 @@ export const animations: Record<AnimationState, AnimationConfig> = {
     loop: false,
     width: 640,
     height: 432,
+    cols: 6,
+    rows: 6,
   },
-
   attack: {
     src: require("../assets/character/attack.webp"),
     frames: 99,
@@ -53,8 +61,9 @@ export const animations: Record<AnimationState, AnimationConfig> = {
     loop: false,
     width: 640,
     height: 432,
+    cols: 10,
+    rows: 10,
   },
-
   victory: {
     src: require("../assets/character/victory.webp"),
     frames: 86,
@@ -62,5 +71,7 @@ export const animations: Record<AnimationState, AnimationConfig> = {
     loop: false,
     width: 640,
     height: 272,
+    cols: 10,
+    rows: 9,
   },
 };

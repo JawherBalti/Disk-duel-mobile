@@ -1,10 +1,4 @@
-import {
-  useState,
-  useCallback,
-  useEffect,
-  useRef,
-  useMemo,
-} from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -17,7 +11,14 @@ import {
   Dimensions,
   TouchableWithoutFeedback,
   LayoutChangeEvent,
+  useWindowDimensions,
 } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withDelay,
+} from "react-native-reanimated";
 import { GamePhase, CardType, Sector, RootStackParamList } from "../lib/types";
 import Modal from "../components/modal";
 import Button from "../components/button";
@@ -31,8 +32,9 @@ import io, { Socket } from "socket.io-client";
 import {
   generateRandomSectors,
   getOppositePair,
-  preloadAnimations,
 } from "../lib/utils"; // assume these exist
+import { preloadAnimations } from "../lib/preloadAnimations";
+
 import CardsModal from "../components/cards-modal";
 import CardPickModal from "../components/card-pick-modal";
 import SceneModal from "../components/scene-modal";
@@ -57,8 +59,10 @@ import {
   CANVAS_SIZE,
   HALF_DISK_END,
   RADIUS,
-  CENTER
+  CENTER,
 } from "../lib/constants";
+import Svg, { Path } from "react-native-svg";
+
 type PlayScreenRouteProp = RouteProp<RootStackParamList, "Play">;
 const DISPLAY_SIZE = CANVAS_SIZE - 200;
 const scale = DISPLAY_SIZE / CANVAS_SIZE;
@@ -68,6 +72,8 @@ export default function PlayScreen() {
   const route = useRoute<PlayScreenRouteProp>();
   const navigation = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
+
   const roomId = route.params.gameCode; // non-optional
 
   // --- Socket ---
@@ -89,7 +95,7 @@ export default function PlayScreen() {
   const [phase3Duration, setPhase3Duration] = useState(20);
   const phase3IntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
-    null
+    null,
   );
 
   // --- Round / lives / cards ---
@@ -98,7 +104,7 @@ export default function PlayScreen() {
   const [dealerLives, setDealerLives] = useState(3);
   const [cardPicked, setCardPicked] = useState(false);
   const [revealedCardIndex, setRevealedCardIndex] = useState<number | null>(
-    null
+    null,
   );
   const [revealedCardType, setRevealedCardType] = useState<CardType>(null);
   const [lastResultMessage, setLastResultMessage] = useState<string>("");
@@ -115,8 +121,7 @@ export default function PlayScreen() {
   } | null>(null);
 
   // --- Animations / Sprites ---
-  const [sprites, setSprites] = useState<any>(null);
-
+const [sprites, setSprites] = useState<Record<string, any>>({});
   // --- Scene modal ---
   const [sceneModal, setSceneModal] = useState<{
     isOpen: boolean;
@@ -127,6 +132,7 @@ export default function PlayScreen() {
     pose: "welcome1",
     messages: [],
   });
+
   const openScene = (pose: string, messages: string[]) => {
     setSceneModal({ isOpen: true, pose, messages });
   };
@@ -173,7 +179,7 @@ export default function PlayScreen() {
     title: string,
     message: string,
     onConfirm?: () => void,
-    confirmText = "OK"
+    confirmText = "OK",
   ) => {
     setModal({ isOpen: true, title, message, onConfirm, confirmText });
   };
@@ -188,15 +194,16 @@ export default function PlayScreen() {
 
   // --- Preload sprites ---
   useEffect(() => {
-    // preloadAnimations().then(setSprites);
+    preloadAnimations().then(setSprites);
   }, []);
 
   // --- Socket connection ---
   useEffect(() => {
-  const newSocket = io('http://localhost:3000', {
-    path: '/socket.io',
-    transports: ['websocket'],
-  });    setSocket(newSocket);
+    const newSocket = io("http://localhost:3000", {
+      path: "/socket.io",
+      transports: ["websocket"],
+    });
+    setSocket(newSocket);
     return () => {
       newSocket.disconnect();
       if (countdownIntervalRef.current)
@@ -348,7 +355,7 @@ export default function PlayScreen() {
         setRevealedCardType(cardType);
         setCardPicked(true);
         setPlayerLives(newPlayerLives);
-      }
+      },
     );
 
     socket.on(
@@ -381,7 +388,7 @@ export default function PlayScreen() {
           // hit.play();
           openScene("hit", ["HA HA HA! You don't stand a chance."]);
         }
-      }
+      },
     );
 
     socket.on("gameOver", ({ teamScore: finalScore, reason, result }) => {
@@ -448,7 +455,7 @@ export default function PlayScreen() {
         setRevealedCardType(null);
         setLastResultMessage("");
         setPhase3Duration(20);
-      }
+      },
     );
 
     socket.on("partnerLeft", () => {
@@ -457,7 +464,7 @@ export default function PlayScreen() {
         "Your partner has left the game. Returning to home.",
         () => {
           goHome();
-        }
+        },
       );
     });
 
@@ -483,7 +490,10 @@ export default function PlayScreen() {
         setRole("player1");
         setGamePhase("phase1");
       } else {
-        showModal("Creation Failed", response.error || "Could not create room.");
+        showModal(
+          "Creation Failed",
+          response.error || "Could not create room.",
+        );
       }
     });
   };
@@ -622,7 +632,12 @@ export default function PlayScreen() {
 
   // --- Action Buttons component ---
   const ActionButtons = useMemo(() => {
-    if (gamePhase === "phase1" && role === "player1" && sectors.length === 0 && countdown === null) {
+    if (
+      gamePhase === "phase1" &&
+      role === "player1" &&
+      sectors.length === 0 &&
+      countdown === null
+    ) {
       return (
         <Button
           variant="green"
@@ -634,19 +649,38 @@ export default function PlayScreen() {
       );
     }
     if (gamePhase === "phase2" && role === "player1") {
-      return <Button variant="blue" onPress={handleReadyToPhase3}>Start Partner's Turn</Button>;
+      return (
+        <Button variant="blue" onPress={handleReadyToPhase3}>
+          Start Partner's Turn
+        </Button>
+      );
     }
     if (gamePhase === "roundComplete" && role === "player1") {
-      return <Button variant="green" onPress={handleNextRound}>Next Round</Button>;
+      return (
+        <Button variant="green" onPress={handleNextRound}>
+          Next Round
+        </Button>
+      );
     }
     if (gamePhase === "roundTransition" && role === "player1") {
-      return <Button variant="orange" onPress={handleStartNextRoundTier}>Begin Round {round}</Button>;
+      return (
+        <Button variant="orange" onPress={handleStartNextRoundTier}>
+          Begin Round {round}
+        </Button>
+      );
     }
     if (gamePhase === "gameover" && role === "player1") {
-      return <Button variant="orange" onPress={handlePlayAgain}>Play Again</Button>;
+      return (
+        <Button variant="orange" onPress={handlePlayAgain}>
+          Play Again
+        </Button>
+      );
     }
     return null;
   }, [gamePhase, role, sectors, countdown, players, round]);
+
+  const isSmall = width < 600;
+  const titleSize = isSmall ? "text-2xl" : "text-4xl";
 
   // --- Lives and round indicator ---
   const LivesAndRoundBar = () => (
@@ -682,7 +716,7 @@ export default function PlayScreen() {
           style={styles.gradient}
         >
           <View style={styles.lobbyContainer}>
-            <View style={styles.lobbyCard}>
+            <View className="w-full rounded-[28px] border-4 border-yellow-400 px-6 py-7 bg-[rgba(15,15,40,0.92)]">
               <Text style={styles.title}>Disk Duel</Text>
               <Text style={styles.roomIdLabel}>Room ID:</Text>
               <Pressable onPress={copyRoomId} style={styles.roomIdContainer}>
@@ -698,8 +732,18 @@ export default function PlayScreen() {
                   </Button>
                 </View>
               </View>
-              {copyMessage && <Text style={styles.copyMessage}>{copyMessage}</Text>}
+              {copyMessage && (
+                <Text style={styles.copyMessage}>{copyMessage}</Text>
+              )}
             </View>
+          </View>
+          <View className="absolute bottom-7 right-7">
+            <Pressable
+              onPress={() => navigation.navigate("Home")}
+              className="bg-orange-500 p-4 rounded-full items-center justify-center mb-2"
+            >
+              <HomeIcon width={24} height={24} color="white" />
+            </Pressable>
           </View>
         </LinearGradient>
         <Modal
@@ -716,12 +760,14 @@ export default function PlayScreen() {
 
   // --- Main game UI ---
   return (
-    <SafeAreaView style={[styles.safeArea, { paddingBottom: safeAreaInsets.bottom }]}>
+    <SafeAreaView
+      style={[styles.safeArea, { paddingBottom: safeAreaInsets.bottom }]}
+    >
       <LinearGradient
         colors={["#06b6d4", "#3b82f6", "#a855f7"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[styles.gradient,{paddingTop:safeAreaInsets.top}]}
+        style={[styles.gradient, { paddingTop: safeAreaInsets.top }]}
       >
         {/* Header bar */}
         <View style={styles.header}>
@@ -752,26 +798,61 @@ export default function PlayScreen() {
 
         <LivesAndRoundBar />
 
-        {/* Canvas area */}
-        <View
-          ref={canvasContainerRef}
-          style={styles.canvasContainer}
-          onLayout={onCanvasLayout}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-        >
-          <Canvas style={{ width: DISPLAY_SIZE, height: DISPLAY_SIZE }}>
-            <Disk
-              scale={scale}
-              phase={gamePhase}
-              role={role}
-              sectors={sectors}
-              countdown={countdown}
-              clockHandAngle={clockHandAngle}
-              hoverAngle={hoverAngle}
-            />
-          </Canvas>
+        <View className="flex-1 items-center justify-center">
+          <Animated.Text
+            className={`font-fredoka font-bold text-white mb-0 mt-10 text-center ${titleSize}`}
+            style={{
+              textShadowColor: "rgba(0,0,0,0.28)",
+              textShadowOffset: { width: 0, height: 4 },
+              textShadowRadius: 14,
+              letterSpacing: 2,
+            }}
+          >
+            {gamePhase === "phase1" && !countdown
+              ? role === "player1" && sectors.length === 0
+                ? "Press 'Ready' below"
+                : "Waiting for Player 1"
+              : gamePhase === "phase1" && countdown !== null
+                ? "Memorise the zones!"
+                : gamePhase === "phase2"
+                  ? "Categories"
+                  : gamePhase === "phase3"
+                    ? role === "player2"
+                      ? "Select an area"
+                      : "Player 2 selecting an area"
+                    : gamePhase === "roundComplete"
+                      ? "Round complete"
+                      : null}
+          </Animated.Text>
+          {/* Canvas area */}
+          <View
+            ref={canvasContainerRef}
+            onLayout={onCanvasLayout}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
+            <Canvas style={{ width: DISPLAY_SIZE, height: DISPLAY_SIZE }}>
+              <Disk
+                scale={scale}
+                phase={gamePhase}
+                role={role}
+                sectors={sectors}
+                countdown={countdown}
+                clockHandAngle={clockHandAngle}
+                hoverAngle={hoverAngle}
+              />
+            </Canvas>
+          </View>
+        </View>
+
+        <View className="absolute bottom-28 right-7">
+          <Pressable
+            onPress={() => navigation.navigate("Home")}
+            className="bg-orange-500 p-4 rounded-full items-center justify-center mb-2"
+          >
+            <HomeIcon width={24} height={24} color="white" />
+          </Pressable>
         </View>
 
         {/* Bottom bar */}
@@ -815,9 +896,7 @@ export default function PlayScreen() {
           )}
 
           {/* Action buttons */}
-          <View style={styles.actionButtons}>
-            {ActionButtons}
-          </View>
+          <View style={styles.actionButtons}>{ActionButtons}</View>
         </View>
       </LinearGradient>
 
@@ -831,7 +910,7 @@ export default function PlayScreen() {
         confirmText={modal.confirmText}
       />
 
-      {/* <SceneModal
+      <SceneModal
         isOpen={sceneModal.isOpen}
         onClose={closeScene}
         pose={sceneModal.pose}
@@ -840,7 +919,7 @@ export default function PlayScreen() {
         sprites={sprites}
         lastResultMessage={lastResultMessage}
         gamePhase={gamePhase}
-      /> */}
+      />
 
       {gamePhase === "cardSelect" && (
         <CardPickModal
@@ -872,13 +951,26 @@ export default function PlayScreen() {
   );
 }
 
+const HomeIcon = ({
+  width,
+  height,
+  color,
+}: {
+  width: number;
+  height: number;
+  color: string;
+}) => (
+  <Svg width={width} height={height} viewBox="0 0 24 24" fill={color}>
+    <Path d="M12 2.1 3 9.3V21h6v-6h6v6h6V9.3l-9-7.2zm0 2.56 6.5 5.2V19h-2v-6H7.5v6h-2v-9.14L12 4.66z" />
+  </Svg>
+);
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
   gradient: {
     flex: 1,
-    paddingHorizontal: 12,
     paddingTop: 8,
   },
   // Lobby styles
@@ -888,16 +980,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 16,
   },
-  lobbyCard: {
-    backgroundColor: "rgba(31, 41, 55, 0.9)",
-    padding: 24,
-    borderRadius: 12,
-    alignItems: "center",
-    width: "100%",
-    maxWidth: 380,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
-  },
+
   title: {
     fontSize: 36,
     fontWeight: "bold",
@@ -917,6 +1000,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     marginBottom: 20,
+    width: "50%",
+    margin: "auto",
   },
   roomIdText: {
     fontFamily: "monospace",
@@ -953,7 +1038,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 8,
-    paddingHorizontal: 4,
+    paddingHorizontal: 12,
     backgroundColor: "rgba(0,0,0,0.3)",
     borderRadius: 8,
     marginBottom: 6,
@@ -1054,17 +1139,7 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     fontSize: 16,
   },
-  canvasContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    marginVertical: 4,
-  },
   bottomBar: {
-    position: "absolute", // closest to sticky
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: "rgba(0,0,0,0.5)", // bg-black/50
     borderTopWidth: 1,
     borderTopColor: "rgba(255,255,255,0.1)", // border-white/10

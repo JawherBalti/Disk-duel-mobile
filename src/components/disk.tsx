@@ -298,56 +298,9 @@ export default function Disk({
                   font={defaultFont}
                   color="#FFD700"
                 />
-                <Text
-                  x={CENTER.x - RADIUS / 2 - 38}
-                  y={CENTER.y - RADIUS - 72}
-                  text="Memorise the zones!"
-                  font={defaultFont}
-                  color="#fff"
-                />
               </>
             )}
-            {role === "player1" && sectors.length === 0 && (
-              <Text
-                className="text-center"
-                x={CENTER.x - RADIUS / 2 - 32}
-                y={CENTER.y - RADIUS - 72}
-                text="Click 'Ready' below"
-                font={defaultFont}
-                color="#fff"
-              />
-            )}
           </>
-        )}
-
-        {phase === "phase3" && (
-          <Text
-            x={CENTER.x - RADIUS / 2 - 32}
-            y={CENTER.y - RADIUS - 72}
-            text="Click to place arrow"
-            font={defaultFont}
-            color="#fff"
-          />
-        )}
-
-        {phase === "roundComplete" && (
-          <Text
-            x={CENTER.x - RADIUS / 4 - 64}
-            y={CENTER.y - RADIUS - 72}
-            text="Round complete!"
-            font={defaultFont}
-            color="#FFD700"
-          />
-        )}
-
-        {phase === "phase2" && (
-          <Text
-            x={CENTER.x - RADIUS / 2 - 32}
-            y={CENTER.y - RADIUS - 72}
-            text="Categories"
-            font={defaultFont}
-            color="#fff"
-          />
         )}
       </Group>
 

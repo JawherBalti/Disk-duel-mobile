@@ -4,7 +4,6 @@ import { CSSProperties, Dispatch, SetStateAction } from "react";
 export type RootStackParamList = {
   Play: { gameCode: string };
 };
-
 export type CardType = "double" | "extraLife" | "fastTimer" | null;
 export type SectorType = "" | "danger" | "safe" | "bullseye";
 export type AnimationState =
@@ -32,7 +31,6 @@ export type Sector = {
   start: number;
   end: number;
 };
-
 export type DiskDrawOptions = {
   phase: GamePhase
   role: "player1" | "player2" | null;
@@ -42,7 +40,6 @@ export type DiskDrawOptions = {
   hoverAngle: number | null;
   gameOver?: boolean;
 };
-
 export type AnimationConfig = {
   src: string;
   frames: number;
@@ -51,7 +48,6 @@ export type AnimationConfig = {
   height: number;
   width: number;
 };
-
 export type CharacterAnimationProps = {
   state?: AnimationState;
   width?: number;
@@ -63,9 +59,7 @@ export type CharacterAnimationProps = {
   showBubble: boolean;
   frame?: number;
 };
-
 export type LoadedAnimations = Record<AnimationState, HTMLImageElement>;
-
 export type CommonButtonProps = {
   children: React.ReactNode;
   onClick?: () => void;
@@ -75,17 +69,14 @@ export type CommonButtonProps = {
   type?: "button" | "submit" | "reset";
   style?: CSSProperties | undefined;
 };
-
 export type CardsModalProps = {
   handleCloseCardModal: () => void;
   cardsZoomingOut: boolean;
   oppositePair: { left: string; right: string } | null;
 };
-
 export type GameBoardProps = {
   initialSectors: Sector[];
 };
-
 export type ModalProps = {
   isOpen: boolean;
   title: string;
@@ -94,7 +85,6 @@ export type ModalProps = {
   onConfirm?: () => void; // optional extra action (e.g., redirect)
   confirmText?: string;
 };
-
 export type SidebarProps = {
   teamScore: number;
   copyRoomId: () => void;
@@ -112,7 +102,6 @@ export type SidebarProps = {
   hintSent: boolean;
   LivesAndRoundBar: React.ComponentType;
 };
-
 export type CardPickModalProps = {
   role: "player1" | "player2" | null;
   cardPicked: boolean;
@@ -120,7 +109,6 @@ export type CardPickModalProps = {
   revealedCardType: CardType;
   onPickCard: (index: number) => void;
 };
-
 export type SceneModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -137,15 +125,32 @@ export type SceneModalProps = {
   gamePhase: GamePhase;
   lastResultMessage: string
 };
-
 export type Options = {
   bgMusic: boolean;
   sfx: boolean;
 };
-
 export type OptionsProps = {
   isOptionsOpen: boolean;
   setIsOptionsOpen: Dispatch<SetStateAction<boolean>>;
   setOptions: Dispatch<SetStateAction<Options>>;
   options: Options
 };
+
+export type AnimationConfig = {
+  src: any;
+  frames: number;
+  fps: number;
+  loop: boolean;
+  width: number;
+  height: number;
+  cols: number;
+  rows: number;
+};
+export type SpriteAnimationProps = {
+  state: AnimationState;
+  duration?: number;
+  loop?: boolean;
+  caption?: string;
+  showBubble?: boolean;
+  onComplete?: () => void;
+}
