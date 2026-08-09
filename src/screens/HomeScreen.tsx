@@ -18,8 +18,7 @@ import Svg, { Circle, Path, G } from "react-native-svg";
 import LinearGradient from "react-native-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import SoundPlayer from "react-native-sound-player";
-// Your existing imports (these need to be migrated too, but we keep the import paths)
-import GameBoard from "../components/game-board"; // adjust path
+import GameBoard from "../components/game-board";
 import GameButtons from '../components/game-buttons';
 import HowToPlayModal from "../components/how-to-play";
 import SettingsModal from "../components/settings";
@@ -68,12 +67,12 @@ export default function HomeScreen() {
     loadOptions();
   }, []);
 
-  //Control background music (REPLACE with react-native-sound)
+  //Control background music
   useEffect(() => {
     try {
       if (options.bgMusic) {
         // 1. Play the background audio file (do not include file extension)
-        SoundPlayer.playSoundFile("home1", "m4a");
+        SoundPlayer.playSoundFile("home", "m4a");
 
         // 2. Enable infinite looping
         // iOS: -1 loops indefinitely. Android: non-zero integer loops indefinitely.

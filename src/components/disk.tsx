@@ -303,46 +303,6 @@ export default function Disk({
           </>
         )}
       </Group>
-
-      {/* ---- Game Over overlay ---- */}
-      {phase === "gameover" && (
-        <Group>
-          <Rect
-            x={0}
-            y={0}
-            width={CANVAS_SIZE}
-            height={CANVAS_SIZE}
-            color="rgba(0,0,0,0.82)"
-          />
-          <Text
-            x={CENTER.x - RADIUS / 2 + 32}
-            y={CENTER.y - 32}
-            text="GAME OVER"
-            font={defaultFont}
-            color="#FF5252"
-          />
-        </Group>
-      )}
-
-      {/* ---- Victory overlay ---- */}
-      {phase === "victory" && (
-        <Group>
-          <Rect
-            x={0}
-            y={0}
-            width={CANVAS_SIZE}
-            height={CANVAS_SIZE}
-            color="rgba(0,0,0,0.82)"
-          />
-          <Text
-            x={CENTER.x - RADIUS / 2 + 32}
-            y={CENTER.y - 32}
-            text="VICTORY"
-            font={defaultFont}
-            color="#52ff7d"
-          />
-        </Group>
-      )}
     </Group>
   );
 }

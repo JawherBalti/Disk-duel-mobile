@@ -109,6 +109,11 @@ export default function SceneModal({
           >
             <Text className="text-xl font-bold text-white">✕</Text>
           </Pressable>
+          {/* Round result */}
+          {(gamePhase === "roundComplete" || gamePhase === "roundTransition") &&
+          lastResultMessage ? (
+            <Text style={styles.resultText}>{lastResultMessage}</Text>
+          ) : null}
 
           {/* Character */}
           <View className="flex items-center justify-center">
@@ -119,12 +124,6 @@ export default function SceneModal({
               showBubble={true}
             />
           </View>
-
-          {/* Round result */}
-          {(gamePhase === "roundComplete" || gamePhase === "roundTransition") &&
-          lastResultMessage ? (
-            <Text style={styles.resultText}>{lastResultMessage}</Text>
-          ) : null}
 
           {/* Next button */}
           <View className="items-center mt-10">
@@ -157,18 +156,14 @@ const styles = StyleSheet.create({
 
   resultText: {
     color: "white",
-
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: "900",
-
     textAlign: "center",
-
     marginBottom: 20,
-
     opacity: 0.7,
-
     textTransform: "uppercase",
-
     letterSpacing: 2,
+    width: "70%",
+    margin:"auto"
   },
 });

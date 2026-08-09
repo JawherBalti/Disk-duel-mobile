@@ -29,16 +29,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Canvas, useCanvas } from "@shopify/react-native-skia";
 import Disk from "../components/disk";
 import io, { Socket } from "socket.io-client";
-import {
-  generateRandomSectors,
-  getOppositePair,
-} from "../lib/utils"; // assume these exist
+import { generateRandomSectors, getOppositePair } from "../lib/utils"; // assume these exist
 import { preloadAnimations } from "../lib/preloadAnimations";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import CardsModal from "../components/cards-modal";
 import CardPickModal from "../components/card-pick-modal";
 import SceneModal from "../components/scene-modal";
-// import BackgroundMusic from "../components/background-music";
 import LoadingSprites from "../components/loading-sprites";
 // import {
 //   attack,
@@ -62,11 +58,16 @@ import {
   CENTER,
 } from "../lib/constants";
 import Svg, { Path } from "react-native-svg";
+import SoundPlayer from "react-native-sound-player";
 
 type PlayScreenRouteProp = RouteProp<RootStackParamList, "Play">;
 const DISPLAY_SIZE = CANVAS_SIZE - 200;
 const scale = DISPLAY_SIZE / CANVAS_SIZE;
-// const RADIUS = CANVAS_SIZE / 2 - 20;
+
+const defaultOptions: any = {
+  bgMusic: true,
+  sfx: true,
+};
 
 export default function PlayScreen() {
   const route = useRoute<PlayScreenRouteProp>();
@@ -81,6 +82,7 @@ export default function PlayScreen() {
 
   // --- Game state ---
   const [gamePhase, setGamePhase] = useState<GamePhase>("lobby");
+  const [options, setOptions] = useState<any>(defaultOptions);
   const [role, setRole] = useState<"player1" | "player2" | null>(null);
   const [players, setPlayers] = useState<{ role: string; name: string }[]>([]);
   const [teamScore, setTeamScore] = useState<number>(0);
@@ -121,7 +123,7 @@ export default function PlayScreen() {
   } | null>(null);
 
   // --- Animations / Sprites ---
-const [sprites, setSprites] = useState<Record<string, any>>({});
+  const [sprites, setSprites] = useState<Record<string, any>>({});
   // --- Scene modal ---
   const [sceneModal, setSceneModal] = useState<{
     isOpen: boolean;
@@ -132,13 +134,6 @@ const [sprites, setSprites] = useState<Record<string, any>>({});
     pose: "welcome1",
     messages: [],
   });
-
-  const openScene = (pose: string, messages: string[]) => {
-    setSceneModal({ isOpen: true, pose, messages });
-  };
-  const closeScene = () => {
-    setSceneModal((prev) => ({ ...prev, isOpen: false }));
-  };
 
   // --- Modal for alerts ---
   const [modal, setModal] = useState<{
@@ -210,6 +205,56 @@ const [sprites, setSprites] = useState<Record<string, any>>({});
         clearInterval(countdownIntervalRef.current);
     };
   }, []);
+
+  const openScene = (pose: string, messages: string[]) => {
+    setSceneModal({ isOpen: true, pose, messages });
+  };
+  const closeScene = () => {
+    setSceneModal((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  // 1️⃣ Load options from AsyncStorage (replaces localStorage)
+  useEffect(() => {
+    const loadOptions = async () => {
+      try {
+        const stored = await AsyncStorage.getItem("gameOptions");
+        if (stored) {
+          setOptions(JSON.parse(stored));
+        } else {
+          await AsyncStorage.setItem(
+            "gameOptions",
+            JSON.stringify(defaultOptions),
+          );
+          setOptions(defaultOptions);
+        }
+      } catch (error) {
+        console.error("Failed to load options", error);
+      }
+    };
+    loadOptions();
+  }, []);
+
+  //Control background music (REPLACE with react-native-sound)
+  useEffect(() => {
+    try {
+      if (options.bgMusic) {
+        // 1. Play the background audio file (do not include file extension)
+        SoundPlayer.playSoundFile("room", "m4a");
+
+        // 2. Enable infinite looping
+        // iOS: -1 loops indefinitely. Android: non-zero integer loops indefinitely.
+        SoundPlayer.setNumberOfLoops(Platform.OS === "ios" ? -1 : 1);
+      } else {
+        SoundPlayer.stop();
+      }
+    } catch (e) {
+      console.log("Cannot play sound file", e);
+    }
+    // Clean up when the component unmounts
+    return () => {
+      SoundPlayer.stop();
+    };
+  }, [options.bgMusic]);
 
   // --- Timer for Phase 3 ---
   useEffect(() => {
@@ -669,7 +714,10 @@ const [sprites, setSprites] = useState<Record<string, any>>({});
         </Button>
       );
     }
-    if (gamePhase === "gameover" && role === "player1") {
+    if (
+      (gamePhase === "gameover" || gamePhase === "victory") &&
+      role === "player1"
+    ) {
       return (
         <Button variant="orange" onPress={handlePlayAgain}>
           Play Again
@@ -810,7 +858,7 @@ const [sprites, setSprites] = useState<Record<string, any>>({});
           >
             {gamePhase === "phase1" && !countdown
               ? role === "player1" && sectors.length === 0
-                ? "Press 'Ready' below"
+                ? "Press 'Generate Areas' below"
                 : "Waiting for Player 1"
               : gamePhase === "phase1" && countdown !== null
                 ? "Memorise the zones!"
@@ -822,7 +870,11 @@ const [sprites, setSprites] = useState<Record<string, any>>({});
                       : "Player 2 selecting an area"
                     : gamePhase === "roundComplete"
                       ? "Round complete"
-                      : null}
+                      : gamePhase === "gameover"
+                        ? "Game Over"
+                        : gamePhase === "victory"
+                          ? "Victory"
+                          : null}
           </Animated.Text>
           {/* Canvas area */}
           <View
@@ -846,14 +898,18 @@ const [sprites, setSprites] = useState<Record<string, any>>({});
           </View>
         </View>
 
-        <View className="absolute bottom-28 right-7">
-          <Pressable
-            onPress={() => navigation.navigate("Home")}
-            className="bg-orange-500 p-4 rounded-full items-center justify-center mb-2"
-          >
-            <HomeIcon width={24} height={24} color="white" />
-          </Pressable>
-        </View>
+        {(players.length < 2 ||
+          gamePhase === "victory" ||
+          gamePhase === "gameover") && (
+          <View className="absolute bottom-28 right-7">
+            <Pressable
+              onPress={() => navigation.navigate("Home")}
+              className="bg-orange-500 p-4 rounded-full items-center justify-center mb-2"
+            >
+              <HomeIcon width={24} height={24} color="white" />
+            </Pressable>
+          </View>
+        )}
 
         {/* Bottom bar */}
         <View style={styles.bottomBar}>
