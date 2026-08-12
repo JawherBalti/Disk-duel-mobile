@@ -7,18 +7,7 @@ import {
   Switch,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-export interface Options {
-  bgMusic: boolean;
-  sfx: boolean;
-}
-
-interface SettingsProps {
-  isOptionsOpen: boolean;
-  setIsOptionsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  options: Options;
-  setOptions: React.Dispatch<React.SetStateAction<Options>>;
-}
+import { SettingsProps, Options } from "../lib/types";
 
 const STORAGE_KEY = "gameOptions";
 

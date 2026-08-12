@@ -6,43 +6,32 @@ import {
   Modal,
   Animated,
   Dimensions,
+  Image,
   Easing,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
-
-// (Icon imports – uncomment when you have them)
-// import HighStakesIcon from "../assets/icons/high-stakes.svg";
-// import ExtraLifeIcon from "../assets/icons/extra-life.svg";
-// import QuickeningIcon from "../assets/icons/quickening.svg";
-// import HiddenIcon from "../assets/icons/hidden.svg";
+import SoundPlayer from "react-native-sound-player";
+import { CardPickModalProps } from "../lib/types";
 
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
-interface CardPickModalProps {
-  role: "player1" | "player2" | null;
-  cardPicked: boolean;
-  revealedCardIndex: number | null;
-  revealedCardType: "double" | "extraLife" | "fastTimer" | null;
-  onPickCard: (index: number) => void;
-}
-
 const CARD_INFO: Record<
   string,
-  { label: string; icon: React.FC<any>; desc: string }
+  { label: string; icon: ImageSourcePropType; desc: string }
 > = {
   double: {
     label: "High Stakes",
-    icon: "", // Replace with HighStakesIcon
+    icon: require("../assets/icons/high-stakes.png"),
     desc: "Double effect: -2 lives if wrong, -2 dealer lives if right",
   },
   extraLife: {
     label: "Extra Life",
-    icon: "", // Replace with ExtraLifeIcon
+    icon: require("../assets/icons/extra-life.png"),
     desc: "+1 life for the team, immediately",
   },
   fastTimer: {
     label: "Quickening",
-    icon: "", // Replace with QuickeningIcon
+    icon: require("../assets/icons/quickening.png"),
     desc: "Timer runs faster this round",
   },
 };
@@ -52,6 +41,7 @@ const CARD_WIDTH = SCREEN_WIDTH * 0.22;
 const CARD_HEIGHT = CARD_WIDTH * 1.4;
 
 export default function CardPickModal({
+  options,
   role,
   cardPicked,
   revealedCardIndex,
@@ -96,6 +86,7 @@ export default function CardPickModal({
   const handleCardClick = (idx: number) => {
     if (!canPick) return;
     setSelectedIndex(idx);
+    if (options.sfx) SoundPlayer.playSoundFile("pick", "m4a");
   };
 
   const handleConfirm = () => {
@@ -142,7 +133,8 @@ export default function CardPickModal({
 
     // Border color
     let borderColor = "rgba(255,255,255,0.3)";
-    if (isRevealed) borderColor = "#facc15"; // yellow-400
+    if (isRevealed)
+      borderColor = "#facc15"; // yellow-400
     else if (isSelected) borderColor = "#4ade80"; // green-400
 
     return (
@@ -178,10 +170,14 @@ export default function CardPickModal({
           {/* Card content: hidden icon or revealed info */}
           {isRevealed && info ? (
             <View className="items-center justify-center">
-              {/* <info.icon width={60} height={60} /> */}
-              <Text className="text-white text-[10px] sm:text-xs font-bold uppercase mt-1">
-                {info.label}
-              </Text>
+              <Image
+                source={info.icon}
+                resizeMode="contain"
+                style={{
+                  width: 60,
+                  height: 60,
+                }}
+              />
             </View>
           ) : (
             <View className="items-center justify-center">

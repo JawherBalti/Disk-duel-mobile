@@ -268,7 +268,8 @@ export default function PlayScreen() {
               clearInterval(phase3IntervalRef.current);
             return 0;
           }
-          // tick.play();
+          if (options.sfx) SoundPlayer.playSoundFile("tick", "m4a");
+
           return prev - 1;
         });
       }, 1000);
@@ -331,18 +332,25 @@ export default function PlayScreen() {
       } else {
         setOppositePair(null);
       }
+      if (options.bgMusic) SoundPlayer.stop();
       const interval = setInterval(() => {
         setCountdown((prev) => {
           if (prev === null) return null;
+
           const newCount = prev - 1;
-          // countdownTick.play();
+
           if (newCount <= 0) {
             clearInterval(interval);
             countdownIntervalRef.current = null;
             return null;
           }
+
           return newCount;
         });
+
+        if (options.sfx) {
+          SoundPlayer.playSoundFile("countdown", "m4a");
+        }
       }, 1000);
       countdownIntervalRef.current = interval;
     });
@@ -372,7 +380,8 @@ export default function PlayScreen() {
         setLastResultMessage("");
       }
 
-      // if (phase === "phase2") reveal.play();
+      if (phase === "phase2" && options.sfx)
+        SoundPlayer.playSoundFile("reveal", "m4a");
 
       setGamePhase(phase);
       if (phase === "phase3" && timerDuration) setPhase3Duration(timerDuration);
@@ -395,7 +404,7 @@ export default function PlayScreen() {
         cardType: CardType;
         playerLives: number;
       }) => {
-        // cardPick.play();
+        if (options.sfx) SoundPlayer.playSoundFile("reveal", "m4a");
         setRevealedCardIndex(cardIndex);
         setRevealedCardType(cardType);
         setCardPicked(true);
@@ -427,10 +436,10 @@ export default function PlayScreen() {
         const isCorrect =
           sectorType && sectorType !== "danger" && sectorType !== "timeout";
         if (isCorrect) {
-          // attack.play();
+          if (options.sfx) SoundPlayer.playSoundFile("attack", "m4a");
           openScene("attack", ["I will get you next time."]);
         } else {
-          // hit.play();
+          if (options.sfx) SoundPlayer.playSoundFile("hit", "m4a");
           openScene("hit", ["HA HA HA! You don't stand a chance."]);
         }
       },
@@ -439,16 +448,14 @@ export default function PlayScreen() {
     socket.on("gameOver", ({ teamScore: finalScore, reason, result }) => {
       setTeamScore(finalScore);
       if (result === "victory") {
-        // backgroundRoomMusic.stop();
-        // backgroundVictory.play();
+        if (options.bgMusic) SoundPlayer.playSoundFile("victory", "m4a");
         setGamePhase("victory");
         openScene("victory", [
           "Congratulations! Here is your prize.",
           "Amazing teamwork!",
         ]);
       } else if (reason === "timeout" || reason === "danger") {
-        // backgroundRoomMusic.stop();
-        // backgroundGameover.play();
+        if (options.bgMusic) SoundPlayer.playSoundFile("gameover", "m4a");
         setGamePhase("gameover");
         openScene("laughing", ["You lose!"]);
       }
@@ -480,8 +487,10 @@ export default function PlayScreen() {
           clearInterval(countdownIntervalRef.current);
           countdownIntervalRef.current = null;
         }
-        // backgroundGameover.stop();
-        // backgroundRoomMusic.play();
+        if (options.bgMusic) {
+          SoundPlayer.playSoundFile("room", "m4a");
+          SoundPlayer.setNumberOfLoops(Platform.OS === "ios" ? -1 : 1);
+        }
         setHintSent(hintSent);
         setPlayers(updatedPlayers);
         setTeamScore(newScore);
@@ -525,8 +534,8 @@ export default function PlayScreen() {
       socket.off("gameReset");
       socket.off("partnerLeft");
     };
-  }, [socket, goHome]);
-
+  }, [socket, goHome, options.sfx, options.bgMusic]);
+  
   // --- Handlers ---
   const handleCreateGame = () => {
     if (!socket) return;
@@ -559,6 +568,7 @@ export default function PlayScreen() {
   const handleReadyPhase1 = () => {
     if (role !== "player1") return;
     if (countdown !== null) return;
+    if (options.sfx) SoundPlayer.playSoundFile("click", "m4a");
     const newSectors = generateRandomSectors();
     setSectors(newSectors);
     setCardPicked(false);
@@ -582,9 +592,11 @@ export default function PlayScreen() {
     if (role !== "player1") return;
     if (cardPicked) return;
     socket?.emit("pickCard", { roomId, cardIndex: index });
+    if (options.sfx) SoundPlayer.playSoundFile("click", "m4a");
   };
 
   const handleNextRound = () => {
+    if (options.sfx) SoundPlayer.playSoundFile("click", "m4a");
     if (role === "player1") socket?.emit("nextRound", { roomId });
   };
 
@@ -597,6 +609,7 @@ export default function PlayScreen() {
   };
 
   const handlePlayAgain = () => {
+    if (options.sfx) SoundPlayer.playSoundFile("click", "m4a");
     if (role === "player1") socket?.emit("resetGame", { roomId });
   };
 
@@ -980,6 +993,7 @@ export default function PlayScreen() {
       {gamePhase === "cardSelect" && (
         <CardPickModal
           role={role}
+          options={options}
           cardPicked={cardPicked}
           revealedCardIndex={revealedCardIndex}
           revealedCardType={revealedCardType}

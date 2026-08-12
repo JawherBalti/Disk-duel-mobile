@@ -19,24 +19,23 @@ import LinearGradient from "react-native-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import SoundPlayer from "react-native-sound-player";
 import GameBoard from "../components/game-board";
-import GameButtons from '../components/game-buttons';
+import GameButtons from "../components/game-buttons";
 import HowToPlayModal from "../components/how-to-play";
 import SettingsModal from "../components/settings";
 import { generateRandomSectors } from "../lib/utils";
-// import { Options, Sector } from '../lib/types';
-// ⚠️ Audio import: We'll replace this with react-native-sound logic below
-// import { backgroundHomeMusic } from "@/lib/audio";
+import { Options, Sector } from '../lib/types';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-const defaultOptions: any = {
+
+const defaultOptions: Options = {
   bgMusic: true,
   sfx: true,
 };
 
 export default function HomeScreen() {
-  const [sectors, setSectors] = useState<any[]>([]);
+  const [sectors, setSectors] = useState<Sector[]>([]);
   const [isHowToPlayOpen, setIsHowToPlayOpen] = useState<boolean>(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState<boolean>(false);
-  const [options, setOptions] = useState<any>(defaultOptions);
+  const [options, setOptions] = useState<Options>(defaultOptions);
 
   // 🎯 For animations: title drop (replaces CSS .title-anim)
   const titleTranslateY = useSharedValue(-28);
@@ -77,8 +76,6 @@ export default function HomeScreen() {
         // 2. Enable infinite looping
         // iOS: -1 loops indefinitely. Android: non-zero integer loops indefinitely.
         SoundPlayer.setNumberOfLoops(Platform.OS === "ios" ? -1 : 1);
-      } else {
-        SoundPlayer.stop()
       }
     } catch (e) {
       console.log("Cannot play sound file", e);
@@ -136,8 +133,8 @@ export default function HomeScreen() {
         </Animated.Text>
 
         {/* 🎮 Game Board & Buttons */}
-      {sectors && <GameBoard initialSectors={sectors} />}
-      <GameButtons />
+        {sectors && <GameBoard initialSectors={sectors} />}
+        <GameButtons options={options} />
         {/* 🧭 Floating Buttons (replaces fixed + flex-col) */}
         <View className="absolute bottom-7 right-7 space-y-4">
           <Pressable

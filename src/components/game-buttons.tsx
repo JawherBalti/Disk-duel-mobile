@@ -1,24 +1,16 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-} from "react-native";
+import React, { useState, useRef, useEffect } from "react";
+import { View, Text, TextInput, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-
 import CustomButton from "./button";
 import Modal from "./modal";
+import SoundPlayer from "react-native-sound-player";
+import { Options, RootStackParamList } from "../lib/types";
 
-type RootStackParamList = {
-  Play: {
-    gameCode: string;
-  };
-};
-
-export default function GameButtons() {
+export default function GameButtons({ options }: Options) {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [joinCode, setJoinCode] = useState("");
 
@@ -30,6 +22,12 @@ export default function GameButtons() {
     confirmText: "OK",
   });
 
+  useEffect(() => {
+    return () => {
+      clearCurrentTimeout();
+    };
+  }, []);
+
   const generateGameCode = () =>
     Math.random().toString(36).substring(2, 8).toUpperCase();
 
@@ -37,7 +35,7 @@ export default function GameButtons() {
     title: string,
     message: string,
     onConfirm?: () => void,
-    confirmText = "OK"
+    confirmText = "OK",
   ) => {
     setModal({
       isOpen: true,
@@ -58,22 +56,55 @@ export default function GameButtons() {
     });
   };
 
+  const clearCurrentTimeout = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  };
+
   const handleCreate = () => {
-    navigation.navigate("Play", {
-      gameCode: generateGameCode(),
-    });
+    // Cancel previous timeout
+    clearCurrentTimeout();
+
+    if (options.sfx) {
+      SoundPlayer.stop();
+      SoundPlayer.playSoundFile("click", "m4a");
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      navigation.navigate("Play", {
+        gameCode: generateGameCode(),
+      });
+
+      timeoutRef.current = null;
+    }, 1000);
   };
 
   const handleJoin = () => {
+    // Cancel previous timeout
+    clearCurrentTimeout();
+
+    if (options.sfx) {
+      SoundPlayer.stop();
+      SoundPlayer.playSoundFile("click", "m4a");
+    }
     if (joinCode.trim().length === 6) {
-      navigation.navigate("Play", {
-        gameCode: joinCode.toUpperCase(),
-      });
+      timeoutRef.current = setTimeout(() => {
+        navigation.navigate("Play", {
+          gameCode: joinCode.toUpperCase(),
+        });
+        timeoutRef.current = null;
+      }, 1000);
     } else {
-      showModal(
-        "Join Failed",
-        "Please enter a valid 6-character game code"
-      );
+      showModal("Join Failed", "Please enter a valid 6-character game code");
+      timeoutRef.current = setTimeout(() => {
+        if (options.bgMusic && options.sfx) {
+          SoundPlayer.playSoundFile("home", "m4a");
+          SoundPlayer.setNumberOfLoops(Platform.OS === "ios" ? -1 : 1);
+        }
+        timeoutRef.current = null;
+      }, 2000);
     }
   };
 
@@ -86,10 +117,7 @@ export default function GameButtons() {
           rowGap: 16,
         }}
       >
-        <CustomButton
-          variant="green"
-          onPress={handleCreate}
-        >
+        <CustomButton variant="green" onPress={handleCreate}>
           Create Game
         </CustomButton>
 
@@ -113,11 +141,7 @@ export default function GameButtons() {
         <TextInput
           value={joinCode}
           onChangeText={(text) =>
-            setJoinCode(
-              text
-                .toUpperCase()
-                .replace(/[^A-Z0-9]/g, "")
-            )
+            setJoinCode(text.toUpperCase().replace(/[^A-Z0-9]/g, ""))
           }
           placeholder="6-character code"
           placeholderTextColor="rgba(255,255,255,0.45)"
@@ -132,10 +156,7 @@ export default function GameButtons() {
           }}
         />
 
-        <CustomButton
-          variant="blue"
-          onPress={handleJoin}
-        >
+        <CustomButton variant="blue" onPress={handleJoin}>
           Join Game
         </CustomButton>
       </View>

@@ -1,3 +1,4 @@
+import React from "react"
 import { ParamValue } from "next/dist/server/request/params";
 import { CSSProperties, Dispatch, SetStateAction } from "react";
 
@@ -32,7 +33,7 @@ export type Sector = {
   end: number;
 };
 export type DiskDrawOptions = {
-  phase: GamePhase
+  phase: GamePhase;
   role: "player1" | "player2" | null;
   sectors: Sector[];
   countdown: number | null;
@@ -77,6 +78,11 @@ export type CardsModalProps = {
 export type GameBoardProps = {
   initialSectors: Sector[];
 };
+export type RootStackParamList = {
+  Play: {
+    gameCode: string;
+  };
+};
 export type ModalProps = {
   isOpen: boolean;
   title: string;
@@ -89,7 +95,7 @@ export type SidebarProps = {
   teamScore: number;
   copyRoomId: () => void;
   roomId: ParamValue;
-  gamePhase: GamePhase
+  gamePhase: GamePhase;
   phase3Timer: number | null;
   cardModalDismissed: boolean;
   showCards: boolean;
@@ -102,13 +108,14 @@ export type SidebarProps = {
   hintSent: boolean;
   LivesAndRoundBar: React.ComponentType;
 };
-export type CardPickModalProps = {
+export interface CardPickModalProps {
+  options: Options
   role: "player1" | "player2" | null;
   cardPicked: boolean;
   revealedCardIndex: number | null;
-  revealedCardType: CardType;
+  revealedCardType: "double" | "extraLife" | "fastTimer" | null;
   onPickCard: (index: number) => void;
-};
+}
 export type SceneModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -123,8 +130,14 @@ export type SceneModalProps = {
   >;
   sprites: LoadedAnimations;
   gamePhase: GamePhase;
-  lastResultMessage: string
+  lastResultMessage: string;
 };
+export type SettingsProps = {
+  isOptionsOpen: boolean;
+  setIsOptionsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  options: Options;
+  setOptions: React.Dispatch<React.SetStateAction<Options>>;
+}
 export type Options = {
   bgMusic: boolean;
   sfx: boolean;
@@ -133,7 +146,7 @@ export type OptionsProps = {
   isOptionsOpen: boolean;
   setIsOptionsOpen: Dispatch<SetStateAction<boolean>>;
   setOptions: Dispatch<SetStateAction<Options>>;
-  options: Options
+  options: Options;
 };
 
 export type AnimationConfig = {
@@ -153,4 +166,4 @@ export type SpriteAnimationProps = {
   caption?: string;
   showBubble?: boolean;
   onComplete?: () => void;
-}
+};
