@@ -5,9 +5,9 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import CustomButton from "./button";
 import Modal from "./modal";
 import SoundPlayer from "react-native-sound-player";
-import { Options, RootStackParamList } from "../lib/types";
+import { GameButtonsProps, Options, RootStackParamList } from "../lib/types";
 
-export default function GameButtons({ options }: Options) {
+export default function GameButtons({ options }: GameButtonsProps) {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);

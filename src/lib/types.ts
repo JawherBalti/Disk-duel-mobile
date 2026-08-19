@@ -1,12 +1,9 @@
 import React from "react"
-import { ParamValue } from "next/dist/server/request/params";
 import { CSSProperties, Dispatch, SetStateAction } from "react";
 
-export type RootStackParamList = {
-  Play: { gameCode: string };
-};
 export type CardType = "double" | "extraLife" | "fastTimer" | null;
 export type SectorType = "" | "danger" | "safe" | "bullseye";
+export type StyledSectorType = Exclude<SectorType, "">;
 export type AnimationState =
   | "welcome1"
   | "welcome2"
@@ -28,7 +25,7 @@ export type GamePhase =
   | "victory";
 
 export type Sector = {
-  type: SectorType;
+  type: StyledSectorType;
   start: number;
   end: number;
 };
@@ -40,14 +37,6 @@ export type DiskDrawOptions = {
   clockHandAngle: number | null;
   hoverAngle: number | null;
   gameOver?: boolean;
-};
-export type AnimationConfig = {
-  src: string;
-  frames: number;
-  fps: number;
-  loop: boolean;
-  height: number;
-  width: number;
 };
 export type CharacterAnimationProps = {
   state?: AnimationState;
@@ -79,6 +68,7 @@ export type GameBoardProps = {
   initialSectors: Sector[];
 };
 export type RootStackParamList = {
+  Home: undefined
   Play: {
     gameCode: string;
   };
@@ -94,7 +84,7 @@ export type ModalProps = {
 export type SidebarProps = {
   teamScore: number;
   copyRoomId: () => void;
-  roomId: ParamValue;
+  roomId: string;
   gamePhase: GamePhase;
   phase3Timer: number | null;
   cardModalDismissed: boolean;
@@ -141,6 +131,9 @@ export type SettingsProps = {
 export type Options = {
   bgMusic: boolean;
   sfx: boolean;
+};
+export type GameButtonsProps = {
+  options: Options;
 };
 export type OptionsProps = {
   isOptionsOpen: boolean;

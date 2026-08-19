@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
 import {
   View,
-  Text,
   Pressable,
   SafeAreaView,
   useWindowDimensions,
-  Alert,
   Platform,
 } from "react-native";
 import Animated, {
@@ -14,7 +12,7 @@ import Animated, {
   withTiming,
   withDelay,
 } from "react-native-reanimated";
-import Svg, { Circle, Path, G } from "react-native-svg";
+import Svg, { Circle, Path } from "react-native-svg";
 import LinearGradient from "react-native-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import SoundPlayer from "react-native-sound-player";

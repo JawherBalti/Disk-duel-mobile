@@ -1,21 +1,24 @@
-// preloadAnimations.ts
-import { Image } from 'react-native';
-import { animations } from './animations';
+import { Image, ImageSourcePropType } from "react-native";
+import { animations } from "./animations";
+import { AnimationState } from "./types";
 
-// If you want to return the same type as before (map of key → asset),
-// you can keep the same signature. The "LoadedAnimations" type would then
-// be Record<AnimationState, any> (or the resolved asset object).
-export async function preloadAnimations(): Promise<Record<string, any>> {
+export type LoadedAnimations = Record<
+  AnimationState,
+  ImageSourcePropType
+>;
+
+export async function preloadAnimations(): Promise<LoadedAnimations> {
   const entries = await Promise.all(
     Object.entries(animations).map(async ([key, config]) => {
       const resolved = Image.resolveAssetSource(config.src);
-      if (resolved) {
-        // Prefetch the image into the native cache
+
+      if (resolved?.uri) {
         await Image.prefetch(resolved.uri);
       }
-      // Return the original asset reference (or you could return resolved)
-      return [key, config.src] as const;
+
+      return [key as AnimationState, config.src] as const;
     })
   );
-  return Object.fromEntries(entries);
+
+  return Object.fromEntries(entries) as LoadedAnimations;
 }

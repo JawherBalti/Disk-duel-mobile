@@ -9,11 +9,11 @@ import {
   matchFont,
 } from "@shopify/react-native-skia";
 import { CENTER, RADIUS } from "../../lib/constants";
-import { SectorType } from "../../lib/types";
+import { SectorType, StyledSectorType } from "../../lib/types";
 import {Platform} from "react-native"
 const toDeg = (rad: number) => (rad * 180) / Math.PI;
 
-const SECTOR_LABELS: Record<Exclude<SectorType, "danger">, string> = {
+const SECTOR_LABELS: Record<Exclude<StyledSectorType, "danger">, string> = {
   bullseye: "+3",
   safe: "+1",
 };
@@ -46,6 +46,7 @@ type GlassySectorProps = {
   glowColor: string;
   darkColor: string;
   innerR?: number;
+  showLabel?: boolean;
 };
 
 export function GlassySector({

@@ -8,6 +8,7 @@ import {
   Dimensions,
   Image,
   Easing,
+  ImageSourcePropType,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import SoundPlayer from "react-native-sound-player";
@@ -164,7 +165,6 @@ export default function CardPickModal({
         <Pressable
           disabled={!canPick}
           onPress={() => handleCardClick(idx)}
-          activeOpacity={0.7}
           className="items-center justify-center w-full h-full"
         >
           {/* Card content: hidden icon or revealed info */}

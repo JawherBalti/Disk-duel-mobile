@@ -7,29 +7,21 @@ import {
   SafeAreaView,
   StyleSheet,
   TextInput,
-  ScrollView,
-  Dimensions,
-  TouchableWithoutFeedback,
   LayoutChangeEvent,
   useWindowDimensions,
 } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
-} from "react-native-reanimated";
-import { GamePhase, CardType, Sector, RootStackParamList } from "../lib/types";
+import Animated  from "react-native-reanimated";
+import { GamePhase, CardType, Sector, RootStackParamList, AnimationState } from "../lib/types";
 import Modal from "../components/modal";
 import Button from "../components/button";
 import type { RouteProp } from "@react-navigation/native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import LinearGradient from "react-native-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Canvas, useCanvas } from "@shopify/react-native-skia";
+import { Canvas } from "@shopify/react-native-skia";
 import Disk from "../components/disk";
 import io, { Socket } from "socket.io-client";
-import { generateRandomSectors, getOppositePair } from "../lib/utils"; // assume these exist
+import { generateRandomSectors } from "../lib/utils"; // assume these exist
 import { preloadAnimations } from "../lib/preloadAnimations";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CardsModal from "../components/cards-modal";
@@ -48,9 +40,6 @@ import LoadingSprites from "../components/loading-sprites";
 //   tick,
 // } from "../lib/audio"; // audio modules
 import {
-  DANGER_ANGLE,
-  SAFE_ANGLE,
-  BULLSEYE_ANGLE,
   HALF_DISK_START,
   CANVAS_SIZE,
   HALF_DISK_END,
@@ -59,6 +48,7 @@ import {
 } from "../lib/constants";
 import Svg, { Path } from "react-native-svg";
 import SoundPlayer from "react-native-sound-player";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 type PlayScreenRouteProp = RouteProp<RootStackParamList, "Play">;
 const DISPLAY_SIZE = CANVAS_SIZE - 200;
@@ -71,7 +61,7 @@ const defaultOptions: any = {
 
 export default function PlayScreen() {
   const route = useRoute<PlayScreenRouteProp>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const safeAreaInsets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
 
@@ -127,7 +117,7 @@ export default function PlayScreen() {
   // --- Scene modal ---
   const [sceneModal, setSceneModal] = useState<{
     isOpen: boolean;
-    pose: string;
+    pose: AnimationState;
     messages: string[];
   }>({
     isOpen: false,
@@ -184,7 +174,7 @@ export default function PlayScreen() {
 
   // --- Navigation helper ---
   const goHome = useCallback(() => {
-    navigation.navigate("Home" as any); // adjust to your home route
+    navigation.navigate("Home"); // adjust to your home route
   }, [navigation]);
 
   // --- Preload sprites ---
@@ -206,7 +196,7 @@ export default function PlayScreen() {
     };
   }, []);
 
-  const openScene = (pose: string, messages: string[]) => {
+  const openScene = (pose: AnimationState, messages: string[]) => {
     setSceneModal({ isOpen: true, pose, messages });
   };
   const closeScene = () => {
@@ -243,7 +233,7 @@ export default function PlayScreen() {
 
         // 2. Enable infinite looping
         // iOS: -1 loops indefinitely. Android: non-zero integer loops indefinitely.
-        SoundPlayer.setNumberOfLoops(Platform.OS === "ios" ? -1 : 1);
+        SoundPlayer.setNumberOfLoops(1);
       } else {
         SoundPlayer.stop();
       }
@@ -489,7 +479,7 @@ export default function PlayScreen() {
         }
         if (options.bgMusic) {
           SoundPlayer.playSoundFile("room", "m4a");
-          SoundPlayer.setNumberOfLoops(Platform.OS === "ios" ? -1 : 1);
+          SoundPlayer.setNumberOfLoops( 1);
         }
         setHintSent(hintSent);
         setPlayers(updatedPlayers);

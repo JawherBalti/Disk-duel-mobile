@@ -1,4 +1,4 @@
-import { Sector } from "@/lib/types";
+import { Sector } from "../lib/types";
 import GameBoard from "./game-board";
 
 type LoadingSpritesProps = {

@@ -1,26 +1,19 @@
 import React from "react";
 import {
   Skia,
-  Canvas,
   Group,
   Path,
-  Rect,
   Text,
-  vec,
-  useFont,
   Shadow,
-  LinearGradient,
   matchFont,
 } from "@shopify/react-native-skia";
-import { Platform, View } from "react-native";
 import {
   CENTER,
   RADIUS,
   HALF_DISK_START,
   HALF_DISK_END,
-  CANVAS_SIZE,
 } from "../lib/constants";
-import { SectorType, Sector, GamePhase } from "../lib/types";
+import { Sector, GamePhase, StyledSectorType } from "../lib/types";
 
 // Your existing Skia components
 import { BasePlatform } from "./disk/base-platform";
@@ -33,9 +26,10 @@ import { Hub } from "./disk/hub";
 // 1. Styles for sector types (used for player1’s coloured sectors)
 // --------------------------------------------------------------------
 const SECTOR_STYLES: Record<
-  SectorType,
+  StyledSectorType,
   { baseColor: string; glowColor: string; darkColor: string }
-> = {
+> =
+{
   bullseye: {
     baseColor: "#FFD700",
     glowColor: "#FFA000",
@@ -114,14 +108,6 @@ const ClockHand: React.FC<{ angle: number }> = ({ angle }) => {
 };
 
 // --------------------------------------------------------------------
-// 4. Helper to get a system font of a given size
-// --------------------------------------------------------------------
-const getSystemFont = (size: number) => {
-  const typeface = Skia.Typeface.MakeDefault();
-  return new Skia.Font(typeface, size); // <--- Added 'new'
-};
-
-// --------------------------------------------------------------------
 // 5. Main Disk component
 // --------------------------------------------------------------------
 interface DiskProps {
@@ -134,7 +120,7 @@ interface DiskProps {
   scale: number;
 }
 
-const fontFamily = Platform.OS === "ios" ? "Helvetica" : "sans-serif";
+const fontFamily = "sans-serif";
 const defaultFont = matchFont({
   fontFamily: fontFamily,
   fontSize: 32,
@@ -256,7 +242,6 @@ export default function Disk({
             text="MOST"
             font={defaultFont}
             color="#fff"
-            textAlign="center"
           />
           <Text
             x={CENTER.x + RADIUS * 0.55}
@@ -264,7 +249,6 @@ export default function Disk({
             text="LEAST"
             font={defaultFont}
             color="#fff"
-            textAlign="center"
           />
         </>
       )}

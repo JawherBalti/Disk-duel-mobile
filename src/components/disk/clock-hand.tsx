@@ -1,3 +1,7 @@
+import { Skia } from "@shopify/react-native-skia";
+import { CENTER, RADIUS } from "../../lib/constants";
+import { Path } from "@shopify/react-native-skia";
+
 export const ClockHand: React.FC<{ angle: number }> = ({ angle }) => {
   const length = RADIUS + 10; // or similar
   const endX = CENTER.x + Math.cos(angle) * length;
