@@ -23,6 +23,7 @@ import SettingsModal from "../components/settings";
 import { generateRandomSectors } from "../lib/utils";
 import { Options, Sector } from '../lib/types';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const defaultOptions: Options = {
   bgMusic: true,
@@ -107,63 +108,72 @@ export default function HomeScreen() {
       className="flex-1"
       style={{ paddingBottom: safeAreaInsets.bottom }}
     >
-      {/* 🌈 Gradient background (replaces CSS linear-gradient) */}
-      <LinearGradient
-        colors={["#06b6d4", "#3b82f6", "#a855f7"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        className="flex-1 items-center justify-center p-4 pt-0"
+
+      <KeyboardAwareScrollView
+        contentContainerStyle={{ flex: 1 }}
+        scrollEnabled={false}
+        enableOnAndroid={true}
+        extraHeight={100}
       >
-        {/* 🎬 Animated Title (replaces .title-anim + inline styles) */}
-        <Animated.Text
-          className={`font-fredoka font-bold text-white mb-0 text-center ${titleSize}`}
-          style={[
-            titleAnimatedStyle,
-            {
-              textShadowColor: "rgba(0,0,0,0.28)",
-              textShadowOffset: { width: 0, height: 4 },
-              textShadowRadius: 14,
-              letterSpacing: 2,
-            },
-          ]}
+
+        <LinearGradient
+          colors={["#06b6d4", "#3b82f6", "#a855f7"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="flex-1 items-center justify-center p-4 pt-0"
         >
-          Disk Duel
-        </Animated.Text>
-
-        {/* 🎮 Game Board & Buttons */}
-        {sectors && <GameBoard initialSectors={sectors} />}
-        <GameButtons options={options} />
-        {/* 🧭 Floating Buttons (replaces fixed + flex-col) */}
-        <View className="absolute bottom-7 right-7 space-y-4">
-          <Pressable
-            onPress={() => setIsOptionsOpen(true)}
-            className="bg-orange-500 p-4 rounded-full items-center justify-center mb-2"
-            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+          {/* 🎬 Animated Title (replaces .title-anim + inline styles) */}
+          <Animated.Text
+            className={`font-fredoka font-bold text-white mb-0 text-center ${titleSize}`}
+            style={[
+              titleAnimatedStyle,
+              {
+                textShadowColor: "rgba(0,0,0,0.28)",
+                textShadowOffset: { width: 0, height: 4 },
+                textShadowRadius: 14,
+                letterSpacing: 2,
+              },
+            ]}
           >
-            <SettingsIcon width={24} height={24} color="white" />
-          </Pressable>
+            Disk Duel
+          </Animated.Text>
 
-          <Pressable
-            onPress={() => setIsHowToPlayOpen(true)}
-            className="bg-orange-500 p-4 rounded-full items-center justify-center"
-            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-          >
-            <HelpIcon width={24} height={24} color="white" />
-          </Pressable>
-        </View>
+          {/* 🎮 Game Board & Buttons */}
+          {sectors && <GameBoard initialSectors={sectors} />}
+          <GameButtons options={options} />
+          {/* 🧭 Floating Buttons (replaces fixed + flex-col) */}
+          <View className="absolute bottom-7 right-7 space-y-4">
+            <Pressable
+              onPress={() => setIsOptionsOpen(true)}
+              className="bg-orange-500 p-4 rounded-full items-center justify-center mb-2"
+              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+            >
+              <SettingsIcon width={24} height={24} color="white" />
+            </Pressable>
 
-        {/* 📦 Modals (You'll need to convert these to RN Modal components) */}
-        <HowToPlayModal
-          isHowToPlayOpen={isHowToPlayOpen}
-          setIsHowToPlayOpen={setIsHowToPlayOpen}
-        />
-        <SettingsModal
-          isOptionsOpen={isOptionsOpen}
-          setIsOptionsOpen={setIsOptionsOpen}
-          setOptions={setOptions}
-          options={options}
-        />
-      </LinearGradient>
+            <Pressable
+              onPress={() => setIsHowToPlayOpen(true)}
+              className="bg-orange-500 p-4 rounded-full items-center justify-center"
+              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+            >
+              <HelpIcon width={24} height={24} color="white" />
+            </Pressable>
+          </View>
+
+          {/* 📦 Modals (You'll need to convert these to RN Modal components) */}
+          <HowToPlayModal
+            isHowToPlayOpen={isHowToPlayOpen}
+            setIsHowToPlayOpen={setIsHowToPlayOpen}
+          />
+          <SettingsModal
+            isOptionsOpen={isOptionsOpen}
+            setIsOptionsOpen={setIsOptionsOpen}
+            setOptions={setOptions}
+            options={options}
+          />
+        </LinearGradient>
+      </KeyboardAwareScrollView>
+
     </SafeAreaView>
   );
 }

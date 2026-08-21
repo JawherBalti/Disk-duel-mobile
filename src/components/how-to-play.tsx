@@ -9,9 +9,7 @@ import {
   useWindowDimensions,
   NativeSyntheticEvent,
   NativeScrollEvent,
-  StyleSheet,
 } from "react-native";
-import CharacterAnimation from "./character-animation";
 import { AnimationState, LoadedAnimations } from "../lib/types";
 import { preloadAnimations } from "../lib/preloadAnimations";
 
@@ -227,22 +225,6 @@ export default function HowToPlayModal({
                     />
                     {/* character + description */}
                     <View className="mt-5 flex-row items-center">
-                      {/* Uncomment when CharacterAnimation is ready */}
-
-                      {/*
-                    <CharacterAnimation
-                      state={item.pose}
-                      caption={item.description}
-                      width={600}
-                      height={800}
-                      customHeight={100}
-                      customWidth={100}
-                      showBubble={false}
-                      sprites={sprites}
-                      frame={6}
-                    />
-                    */}
-
                       <Text className="ml-4 flex-1 text-base leading-6 text-gray-300">
                         {item.description}
                       </Text>

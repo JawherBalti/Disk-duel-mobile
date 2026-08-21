@@ -28,17 +28,6 @@ import CardsModal from "../components/cards-modal";
 import CardPickModal from "../components/card-pick-modal";
 import SceneModal from "../components/scene-modal";
 import LoadingSprites from "../components/loading-sprites";
-// import {
-//   attack,
-//   backgroundGameover,
-//   backgroundRoomMusic,
-//   backgroundVictory,
-//   cardPick,
-//   countdownTick,
-//   hit,
-//   reveal,
-//   tick,
-// } from "../lib/audio"; // audio modules
 import {
   HALF_DISK_START,
   CANVAS_SIZE,
