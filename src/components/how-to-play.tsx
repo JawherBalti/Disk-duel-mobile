@@ -50,44 +50,45 @@ const slides: Slide[] = [
   {
     title: "Round Cards",
     description:
-      'Next, two opposite statements are revealed. For example: "Biggest Country" versus "Smallest Country".',
+      'Next, two opposite statements are revealed. For example: "Largest Planet" versus "Smallest Planet".',
     image: require("../assets/rules/4.webp"),
     pose: "welcome2",
   },
   {
     title: "Category Scale",
     description:
-      'The disk is now split into two halves representing the two statements. In this example, one side means "bigger countries" and the other means "smaller countries".',
+      'The disk is now split into two halves representing the two statements. In this example, one side means "larger planets" and the other means "smaller planets".',
     image: require("../assets/rules/5.webp"),
     pose: "welcome1",
   },
   {
     title: "Choose a Hint",
     description:
-      "Player 1 must remember where the colored areas are and choose a country that helps Player 2 avoid the danger zone while aiming for the bullseye. Send a hint using the input on the right side.",
+      "Player 1 must remember where the colored areas are and choose a planet that helps Player 2 avoid the danger zone while aiming for the bullseye. Send a hint using the input at the bottom.",
     image: require("../assets/rules/6.webp"),
     pose: "welcome2",
   },
   {
     title: "Optimize Your Hint",
     description:
-      "Choosing Russia points to the 'biggest' end of the scale, leading Player 2 toward the safe zone for only 1 point. Choosing Brazil instead suggests a position closer to the middle, helping Player 2 target the bullseye for 3 points.",
+      "Choosing 'Mercury' points to the 'smallest' end of the scale, leading Player 2 toward the safe zone for only 1 point. Choosing 'Earth' instead suggests a position closer to the middle, helping Player 2 target the bullseye for 3 points.",
     image: require("../assets/rules/7.webp"),
     pose: "welcome3",
   },
   {
     title: "Place Your Marker",
     description:
-      "Using the hint, Player 2 places the marker on the disk where they believe the chosen country belongs. If they remembered the areas correctly, they'll avoid the danger zone and hopefully land on the bullseye.",
+      "Using the hint, Player 2 places the marker on the disk where they believe the chosen planet belongs. If they remembered the areas correctly, they'll avoid the danger zone and hopefully land on the bullseye.",
     image: require("../assets/rules/8.webp"),
     pose: "welcome2",
   },
 ];
+
 export default function HowToPlayModal({
   isHowToPlayOpen,
   setIsHowToPlayOpen,
 }: HowToPlayModalProps) {
-  const { width: SCREEN_WIDTH } = useWindowDimensions();
+  const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = useWindowDimensions();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [sprites, setSprites] = useState<LoadedAnimations | null>(null);
   const flatListRef = useRef<FlatList>(null);
@@ -217,15 +218,16 @@ export default function HowToPlayModal({
                     {/* image */}
                     <Image
                       source={item.image}
-                      resizeMode="contain"
+                      resizeMode="stretch"
                       style={{
-                        width: SCREEN_WIDTH - 32,
-                        height: 320,
+                        width: "auto",
+                        height: SCREEN_HEIGHT / 2,
+                        backgroundColor: 'red'
                       }}
                     />
                     {/* character + description */}
-                    <View className="mt-5 flex-row items-center">
-                      <Text className="ml-4 flex-1 text-base leading-6 text-gray-300">
+                    <View className="mt-5 w-full flex justify-center items-center px-5">
+                      <Text className="w-full mx-auto text-center text-base leading-6 text-gray-300">
                         {item.description}
                       </Text>
                     </View>
@@ -238,9 +240,8 @@ export default function HowToPlayModal({
                 <Pressable
                   disabled={currentSlide === 0}
                   onPress={prev}
-                  className={`h-12 w-12 items-center justify-center rounded-full border-2 border-yellow-400 bg-slate-800 ${
-                    currentSlide === 0 ? "opacity-40" : ""
-                  }`}
+                  className={`h-12 w-12 items-center justify-center rounded-full border-2 border-yellow-400 bg-slate-800 ${currentSlide === 0 ? "opacity-40" : ""
+                    }`}
                 >
                   <Text className="text-3xl text-yellow-400">‹</Text>
                 </Pressable>
@@ -250,9 +251,8 @@ export default function HowToPlayModal({
                     <Pressable
                       key={idx}
                       onPress={() => goToSlide(idx)}
-                      className={`mx-1 h-3 w-3 rounded-full ${
-                        idx === currentSlide ? "bg-yellow-400" : "bg-slate-500"
-                      }`}
+                      className={`mx-1 h-3 w-3 rounded-full ${idx === currentSlide ? "bg-yellow-400" : "bg-slate-500"
+                        }`}
                     />
                   ))}
                 </View>
@@ -260,9 +260,8 @@ export default function HowToPlayModal({
                 <Pressable
                   disabled={currentSlide === totalSlides - 1}
                   onPress={next}
-                  className={`h-12 w-12 items-center justify-center rounded-full border-2 border-yellow-400 bg-slate-800 ${
-                    currentSlide === totalSlides - 1 ? "opacity-40" : ""
-                  }`}
+                  className={`h-12 w-12 items-center justify-center rounded-full border-2 border-yellow-400 bg-slate-800 ${currentSlide === totalSlides - 1 ? "opacity-40" : ""
+                    }`}
                 >
                   <Text className="text-3xl text-yellow-400">›</Text>
                 </Pressable>

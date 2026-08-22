@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Pressable,
-  SafeAreaView,
   useWindowDimensions,
   Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context"
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -22,13 +22,18 @@ import HowToPlayModal from "../components/how-to-play";
 import SettingsModal from "../components/settings";
 import { generateRandomSectors } from "../lib/utils";
 import { Options, Sector } from '../lib/types';
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 
 const defaultOptions: Options = {
   bgMusic: true,
   sfx: true,
 };
+
+const adUnitId = __DEV__
+  ? TestIds.BANNER  // Test ad unit ID
+  : 'ca-app-pub-xxxxxxxxxxxxx/yyyyyyyyyyyy'; // Your real AdMob unit ID
+
 
 export default function HomeScreen() {
   const [sectors, setSectors] = useState<Sector[]>([]);
@@ -59,7 +64,7 @@ export default function HomeScreen() {
           setOptions(defaultOptions);
         }
       } catch (error) {
-        console.error("Failed to load options", error);
+        console.log("Failed to load options", error);
       }
     };
     loadOptions();
@@ -97,7 +102,6 @@ export default function HomeScreen() {
     titleOpacity.value = withDelay(100, withTiming(1, { duration: 550 }));
   }, []);
 
-  const safeAreaInsets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   // 5️⃣ Responsive text size (replaces @media queries)
   const isSmall = width < 600;
@@ -105,8 +109,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView
-      className="flex-1"
-      style={{ paddingBottom: safeAreaInsets.bottom }}
+      edges={['bottom', 'left', 'right']} style={{ flex: 1 }}
     >
 
       <KeyboardAwareScrollView
@@ -115,13 +118,50 @@ export default function HomeScreen() {
         enableOnAndroid={true}
         extraHeight={100}
       >
-
+        {/* Banner Ad at the bottom */}
+        <BannerAd
+          unitId={adUnitId}
+          size={BannerAdSize.LARGE_ANCHORED_ADAPTIVE_BANNER}
+          requestOptions={{
+            requestNonPersonalizedAdsOnly: false,
+          }}
+          onAdLoaded={() => {
+            console.log('Ad loaded successfully');
+          }}
+          onAdFailedToLoad={(error) => {
+            console.log('Ad failed to load:', error);
+          }}
+          onAdOpened={() => {
+            console.log('Ad opened');
+          }}
+          onAdClosed={() => {
+            console.log('Ad closed');
+          }}
+        />
         <LinearGradient
           colors={["#06b6d4", "#3b82f6", "#a855f7"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           className="flex-1 items-center justify-center p-4 pt-0"
         >
+          {/* 🧭 Floating Buttons (replaces fixed + flex-col) */}
+          <View className="flex w-full flex-row items-center justify-end gap-2 -mt-5 mb-5">
+            <Pressable
+              onPress={() => setIsOptionsOpen(true)}
+              className="bg-orange-500 p-3 rounded-full items-center justify-center"
+              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+            >
+              <SettingsIcon width={20} height={20} color="white" />
+            </Pressable>
+
+            <Pressable
+              onPress={() => setIsHowToPlayOpen(true)}
+              className="bg-orange-500 p-3 rounded-full items-center justify-center"
+              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+            >
+              <HelpIcon width={20} height={20} color="white" />
+            </Pressable>
+          </View>
           {/* 🎬 Animated Title (replaces .title-anim + inline styles) */}
           <Animated.Text
             className={`font-fredoka font-bold text-white mb-0 text-center ${titleSize}`}
@@ -141,24 +181,6 @@ export default function HomeScreen() {
           {/* 🎮 Game Board & Buttons */}
           {sectors && <GameBoard initialSectors={sectors} />}
           <GameButtons options={options} />
-          {/* 🧭 Floating Buttons (replaces fixed + flex-col) */}
-          <View className="absolute bottom-7 right-7 space-y-4">
-            <Pressable
-              onPress={() => setIsOptionsOpen(true)}
-              className="bg-orange-500 p-4 rounded-full items-center justify-center mb-2"
-              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-            >
-              <SettingsIcon width={24} height={24} color="white" />
-            </Pressable>
-
-            <Pressable
-              onPress={() => setIsHowToPlayOpen(true)}
-              className="bg-orange-500 p-4 rounded-full items-center justify-center"
-              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-            >
-              <HelpIcon width={24} height={24} color="white" />
-            </Pressable>
-          </View>
 
           {/* 📦 Modals (You'll need to convert these to RN Modal components) */}
           <HowToPlayModal

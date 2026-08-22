@@ -1,6 +1,9 @@
 {
   "name": "DiskDuelMobile",
   "displayName": "DiskDuelMobile",
+    "react-native-google-mobile-ads": {
+    "android_app_id": "ca-app-pub-7773049005906067~5906357357"
+  },
   "plugins": [
     "expo-audio"
   ]

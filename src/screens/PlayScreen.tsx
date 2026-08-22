@@ -4,13 +4,13 @@ import {
   Text,
   Pressable,
   Clipboard,
-  SafeAreaView,
   StyleSheet,
   TextInput,
   LayoutChangeEvent,
   useWindowDimensions,
 } from "react-native";
-import Animated  from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context"
+import Animated from "react-native-reanimated";
 import { GamePhase, CardType, Sector, RootStackParamList, AnimationState } from "../lib/types";
 import Modal from "../components/modal";
 import Button from "../components/button";
@@ -38,6 +38,7 @@ import {
 import Svg, { Path } from "react-native-svg";
 import SoundPlayer from "react-native-sound-player";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 
 type PlayScreenRouteProp = RouteProp<RootStackParamList, "Play">;
 const DISPLAY_SIZE = CANVAS_SIZE - 200;
@@ -47,6 +48,11 @@ const defaultOptions: any = {
   bgMusic: true,
   sfx: true,
 };
+
+const adUnitId = __DEV__
+  ? TestIds.BANNER  // Test ad unit ID
+  : 'ca-app-pub-xxxxxxxxxxxxx/yyyyyyyyyyyy'; // Your real AdMob unit ID
+
 
 export default function PlayScreen() {
   const route = useRoute<PlayScreenRouteProp>();
@@ -468,7 +474,7 @@ export default function PlayScreen() {
         }
         if (options.bgMusic) {
           SoundPlayer.playSoundFile("room", "m4a");
-          SoundPlayer.setNumberOfLoops( 1);
+          SoundPlayer.setNumberOfLoops(1);
         }
         setHintSent(hintSent);
         setPlayers(updatedPlayers);
@@ -514,7 +520,7 @@ export default function PlayScreen() {
       socket.off("partnerLeft");
     };
   }, [socket, goHome, options.sfx, options.bgMusic]);
-  
+
   // --- Handlers ---
   const handleCreateGame = () => {
     if (!socket) return;
@@ -617,14 +623,6 @@ export default function PlayScreen() {
     if (angle > HALF_DISK_END) angle = HALF_DISK_END;
     setHoverAngle(angle);
     latestHoverAngleRef.current = angle;
-  };
-
-  const handleCanvasClick = () => {
-    if (role !== "player2") return;
-    if (gamePhase !== "phase3") return;
-    if (clockHandAngle !== null) return;
-    if (hoverAngle === null) return;
-    socket?.emit("placeHand", { roomId, angle: hoverAngle });
   };
 
   // --- Touch event handlers for canvas ---
@@ -747,14 +745,34 @@ export default function PlayScreen() {
   if (gamePhase === "lobby") {
     return (
       <SafeAreaView
-        style={[styles.safeArea, { paddingBottom: safeAreaInsets.bottom }]}
+        edges={['bottom', 'left', 'right']} style={{ flex: 1 }}
       >
         <LinearGradient
           colors={["#06b6d4", "#3b82f6", "#a855f7"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.gradient}
+          className="flex-1"
         >
+          {/* Banner Ad at the bottom */}
+          <BannerAd
+            unitId={adUnitId}
+            size={BannerAdSize.LARGE_ANCHORED_ADAPTIVE_BANNER}
+            requestOptions={{
+              requestNonPersonalizedAdsOnly: false,
+            }}
+            onAdLoaded={() => {
+              console.log('Ad loaded successfully');
+            }}
+            onAdFailedToLoad={(error) => {
+              console.error('Ad failed to load:', error);
+            }}
+            onAdOpened={() => {
+              console.log('Ad opened');
+            }}
+            onAdClosed={() => {
+              console.log('Ad closed');
+            }}
+          />
           <View style={styles.lobbyContainer}>
             <View className="w-full rounded-[28px] border-4 border-yellow-400 px-6 py-7 bg-[rgba(15,15,40,0.92)]">
               <Text style={styles.title}>Disk Duel</Text>
@@ -801,13 +819,14 @@ export default function PlayScreen() {
   // --- Main game UI ---
   return (
     <SafeAreaView
-      style={[styles.safeArea, { paddingBottom: safeAreaInsets.bottom }]}
+      edges={['bottom', 'left', 'right']} style={{ flex: 1 }}
     >
       <LinearGradient
         colors={["#06b6d4", "#3b82f6", "#a855f7"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[styles.gradient, { paddingTop: safeAreaInsets.top }]}
+        className="flex-1"
+        style={{ paddingTop: safeAreaInsets.top }}
       >
         {/* Header bar */}
         <View style={styles.header}>
@@ -893,15 +912,15 @@ export default function PlayScreen() {
         {(players.length < 2 ||
           gamePhase === "victory" ||
           gamePhase === "gameover") && (
-          <View className="absolute bottom-28 right-7">
-            <Pressable
-              onPress={() => navigation.navigate("Home")}
-              className="bg-orange-500 p-4 rounded-full items-center justify-center mb-2"
-            >
-              <HomeIcon width={24} height={24} color="white" />
-            </Pressable>
-          </View>
-        )}
+            <View className="absolute bottom-28 right-7">
+              <Pressable
+                onPress={() => navigation.navigate("Home")}
+                className="bg-orange-500 p-4 rounded-full items-center justify-center mb-2"
+              >
+                <HomeIcon width={24} height={24} color="white" />
+              </Pressable>
+            </View>
+          )}
 
         {/* Bottom bar */}
         <View style={styles.bottomBar}>
@@ -1015,13 +1034,6 @@ const HomeIcon = ({
 );
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  gradient: {
-    flex: 1,
-    paddingTop: 8,
-  },
   // Lobby styles
   lobbyContainer: {
     flex: 1,
